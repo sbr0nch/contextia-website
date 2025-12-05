@@ -62,22 +62,18 @@ export default function Dashboard() {
   const [uploadMessage, setUploadMessage] = useState('')
 
   useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await fetch('/api/upload-data')
-      const result = await response.json()
-      if (result.success) {
-        setData(result.data)
+    // Load data from localStorage on component mount
+    const stored = localStorage.getItem('dashboard_data')
+    if (stored) {
+      try {
+        const parsedData = JSON.parse(stored)
+        setData(parsedData)
+      } catch (error) {
+        console.error('Error parsing stored data:', error)
       }
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
     }
-  }
+    setLoading(false)
+  }, [])
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -86,23 +82,34 @@ export default function Dashboard() {
     setUploading(true)
     setUploadMessage('')
 
-    const formData = new FormData()
-    formData.append('file', file)
-
     try {
-      const response = await fetch('/api/upload-data', {
-        method: 'POST',
-        body: formData
-      })
-
-      const result = await response.json()
+      // Read file content
+      const text = await file.text()
       
-      if (result.success) {
-        setUploadMessage(`✅ ${result.message} (${result.recordCount} runs)`)
-        await fetchData()
-      } else {
-        setUploadMessage(`❌ ${result.message}`)
+      // Parse JSON
+      let jsonData
+      try {
+        jsonData = JSON.parse(text)
+      } catch (parseError) {
+        setUploadMessage('❌ Invalid JSON file')
+        console.error('JSON parse error:', parseError)
+        setUploading(false)
+        return
       }
+
+      // Validate data structure
+      if (!Array.isArray(jsonData)) {
+        setUploadMessage('❌ JSON must be an array of test runs')
+        setUploading(false)
+        return
+      }
+
+      // Store in localStorage
+      localStorage.setItem('dashboard_data', JSON.stringify(jsonData))
+      
+      // Update state
+      setData(jsonData)
+      setUploadMessage(`✅ Data uploaded successfully (${jsonData.length} runs)`)
     } catch (error) {
       setUploadMessage('❌ Upload failed')
       console.error('Upload error:', error)
