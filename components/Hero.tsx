@@ -23,7 +23,7 @@ export default function Hero({ content }: { content: any }) {
 			{/* Dashboard Button */}
 			<Link
 				href="/dashboard"
-				className="fixed top-6 right-6 z-50 flex items-center gap-2 px-4 py-2 bg-primary/90 hover:bg-primary text-white rounded-lg shadow-lg hover:shadow-xl transition-all backdrop-blur-sm">
+				className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 bg-primary/90 hover:bg-primary text-white rounded-lg shadow-lg hover:shadow-xl transition-all backdrop-blur-sm">
 				<BarChart3 className="w-4 h-4" />
 				<span className="hidden sm:inline">Dashboard</span>
 			</Link>
